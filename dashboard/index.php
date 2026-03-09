@@ -43,7 +43,10 @@ header('Content-Type: text/html; charset=UTF-8');
 <body>
   <h1>Karakuri Dashboard</h1>
   <p>Setup is complete.</p>
-  <p><a href="./dashboard/logout">Logout</a></p>
+  <form method="post" action="./dashboard/logout">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+    <button type="submit">Logout</button>
+  </form>
   <p><a href="./dashboard/modules">Module Manager</a></p>
   <ul>
     <li>Site: <?= htmlspecialchars((string) ($config['site_name'] ?? 'Karakuri'), ENT_QUOTES, 'UTF-8') ?></li>

@@ -5,7 +5,7 @@ $root = dirname(__DIR__);
 $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $modulesDir = $root . DIRECTORY_SEPARATOR . 'modules';
 $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
-$baseUrl = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/public/index.php')), '/');
+$baseUrl = kr_base_url();
 
 $state = ['enabled' => []];
 if (file_exists($modulesFile)) {
@@ -15,30 +15,8 @@ if (file_exists($modulesFile)) {
     }
 }
 
-$enabledSet = [];
-foreach ($state['enabled'] as $slug) {
-    if (is_string($slug) && $slug !== '') {
-        $enabledSet[$slug] = true;
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $slug = (string) ($_POST['slug'] ?? '');
-    $action = (string) ($_POST['action'] ?? '');
-    if ($slug !== '') {
-        if ($action === 'enable') {
-            $enabledSet[$slug] = true;
-        } elseif ($action === 'disable') {
-            unset($enabledSet[$slug]);
-        }
-        $newState = ['enabled' => array_values(array_keys($enabledSet))];
-        file_put_contents($modulesFile, json_encode($newState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-    }
-    header('Location: ' . $baseUrl . '/dashboard/modules', true, 302);
-    exit;
-}
-
 $modules = [];
+$moduleSlugSet = [];
 $dirs = glob($modulesDir . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [];
 foreach ($dirs as $modulePath) {
     $slug = basename($modulePath);
@@ -51,13 +29,42 @@ foreach ($dirs as $modulePath) {
         continue;
     }
     $slug = (string) ($meta['slug'] ?? $slug);
+    $moduleSlugSet[$slug] = true;
     $modules[] = [
         'slug' => $slug,
         'name' => (string) ($meta['name'] ?? $slug),
         'description' => (string) ($meta['description'] ?? ''),
-        'enabled' => isset($enabledSet[$slug]),
+        'enabled' => false,
     ];
 }
+
+$enabledSet = [];
+foreach ($state['enabled'] as $slug) {
+    if (is_string($slug) && $slug !== '' && isset($moduleSlugSet[$slug])) {
+        $enabledSet[$slug] = true;
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $slug = (string) ($_POST['slug'] ?? '');
+    $action = (string) ($_POST['action'] ?? '');
+    if (kr_csrf_validate((string) ($_POST['csrf_token'] ?? '')) && isset($moduleSlugSet[$slug])) {
+        if ($action === 'enable') {
+            $enabledSet[$slug] = true;
+        } elseif ($action === 'disable') {
+            unset($enabledSet[$slug]);
+        }
+        $newState = ['enabled' => array_values(array_keys($enabledSet))];
+        file_put_contents($modulesFile, json_encode($newState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+    header('Location: ' . $baseUrl . '/dashboard/modules', true, 302);
+    exit;
+}
+
+foreach ($modules as &$module) {
+    $module['enabled'] = isset($enabledSet[$module['slug']]);
+}
+unset($module);
 
 header('Content-Type: text/html; charset=UTF-8');
 ?>
@@ -82,6 +89,7 @@ header('Content-Type: text/html; charset=UTF-8');
       <p><?= htmlspecialchars($module['description'], ENT_QUOTES, 'UTF-8') ?></p>
       <p>Status: <?= $module['enabled'] ? 'enabled' : 'disabled' ?></p>
       <form method="post" action="">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="slug" value="<?= htmlspecialchars($module['slug'], ENT_QUOTES, 'UTF-8') ?>">
         <?php if ($module['enabled']): ?>
           <button type="submit" name="action" value="disable">Disable</button>

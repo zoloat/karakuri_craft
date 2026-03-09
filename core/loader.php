@@ -18,13 +18,14 @@ if (!is_array($config)) {
     exit;
 }
 $GLOBALS['kr_config'] = $config;
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
 
+require __DIR__ . DIRECTORY_SEPARATOR . 'security.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'router.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'module_loader.php';
+
+kr_start_session();
+kr_send_security_headers();
 
 $moduleState = kr_load_modules($root, $storage);
 $GLOBALS['kr_module_state'] = $moduleState;

@@ -10,6 +10,10 @@ $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!kr_csrf_validate((string) ($_POST['csrf_token'] ?? ''))) {
+        $errors[] = 'Invalid CSRF token.';
+    }
+
     $username = trim((string) ($_POST['username'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
     $siteName = trim((string) ($_POST['site_name'] ?? 'Karakuri'));
@@ -42,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         file_put_contents($modulesFile, json_encode($modulesState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-        $baseUrl = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/public/index.php')), '/');
+        $baseUrl = kr_base_url();
         header('Location: ' . $baseUrl . '/dashboard', true, 302);
         exit;
     }
@@ -70,6 +74,7 @@ header('Content-Type: text/html; charset=UTF-8');
   <?php endif; ?>
 
   <form method="post" action="">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
     <div>
       <label for="site_name">Site name</label><br>
       <input id="site_name" name="site_name" type="text" value="Karakuri">

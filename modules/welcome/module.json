@@ -1,0 +1,8 @@
+{
+  "name": "Welcome Module",
+  "slug": "welcome",
+  "version": "1.0.0",
+  "description": "Default routes for first boot.",
+  "type": "system",
+  "category": "utility"
+}

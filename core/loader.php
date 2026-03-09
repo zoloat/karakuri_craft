@@ -18,6 +18,9 @@ if (!is_array($config)) {
     exit;
 }
 $GLOBALS['kr_config'] = $config;
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 require __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'router.php';
@@ -49,7 +52,25 @@ if ($path === '/dashboard') {
         header('Location: ./setup', true, 302);
         exit;
     }
+    if (empty($_SESSION['kr_admin_auth'])) {
+        header('Location: ./dashboard/login', true, 302);
+        exit;
+    }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'index.php';
+    exit;
+}
+
+if ($path === '/dashboard/login') {
+    if (!file_exists($adminFile)) {
+        header('Location: ./setup', true, 302);
+        exit;
+    }
+    require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'login.php';
+    exit;
+}
+
+if ($path === '/dashboard/logout') {
+    require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'logout.php';
     exit;
 }
 

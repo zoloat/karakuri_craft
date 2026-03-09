@@ -42,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         file_put_contents($modulesFile, json_encode($modulesState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-        header('Location: ../public/index.php/dashboard', true, 302);
+        $baseUrl = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/public/index.php')), '/');
+        header('Location: ' . $baseUrl . '/dashboard', true, 302);
         exit;
     }
 }

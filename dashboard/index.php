@@ -43,6 +43,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <body>
   <h1>Karakuri Dashboard</h1>
   <p>Setup is complete.</p>
+  <p><a href="./dashboard/logout">Logout</a></p>
   <ul>
     <li>Site: <?= htmlspecialchars((string) ($config['site_name'] ?? 'Karakuri'), ENT_QUOTES, 'UTF-8') ?></li>
     <li>Admin: <?= htmlspecialchars((string) ($admin['user'] ?? '(not set)'), ENT_QUOTES, 'UTF-8') ?></li>

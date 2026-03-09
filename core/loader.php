@@ -60,6 +60,19 @@ if ($path === '/dashboard') {
     exit;
 }
 
+if ($path === '/dashboard/modules') {
+    if (!file_exists($adminFile)) {
+        header('Location: ./setup', true, 302);
+        exit;
+    }
+    if (empty($_SESSION['kr_admin_auth'])) {
+        header('Location: ./dashboard/login', true, 302);
+        exit;
+    }
+    require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'modules.php';
+    exit;
+}
+
 if ($path === '/dashboard/login') {
     if (!file_exists($adminFile)) {
         header('Location: ./setup', true, 302);

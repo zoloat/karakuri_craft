@@ -120,6 +120,19 @@ if ($path === '/dashboard/account') {
     exit;
 }
 
+if ($path === '/dashboard/database') {
+    if (!file_exists($adminFile)) {
+        header('Location: ' . kr_base_url() . '/setup', true, 302);
+        exit;
+    }
+    if (empty($_SESSION['kr_admin_auth'])) {
+        header('Location: ' . kr_base_url() . '/dashboard/login', true, 302);
+        exit;
+    }
+    require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'database.php';
+    exit;
+}
+
 // Login remains accessible until authenticated; protected routes redirect here.
 if ($path === '/dashboard/login') {
     if (!file_exists($adminFile)) {

@@ -47,6 +47,7 @@ header('Content-Type: text/html; charset=UTF-8');
     <button type="submit">Logout</button>
   </form>
   <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard/account', ENT_QUOTES, 'UTF-8') ?>">Admin Account</a></p>
+  <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard/database', ENT_QUOTES, 'UTF-8') ?>">Database Settings</a></p>
   <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard/modules', ENT_QUOTES, 'UTF-8') ?>">Module Manager</a></p>
   <ul>
     <li>Site: <?= htmlspecialchars((string) ($config['site_name'] ?? 'Karakuri'), ENT_QUOTES, 'UTF-8') ?></li>

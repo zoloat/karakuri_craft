@@ -23,6 +23,7 @@
 - ダッシュボード:
   - ログイン / ログアウト
   - 基本ステータス表示
+  - DB 設定（接続テスト / 初期化 / SELECT 実行）
   - モジュール有効/無効切替
   - 管理者パスワード変更
 - サンプルモジュール:
@@ -37,6 +38,7 @@
 2. ブラウザで `karakuri.php` を開く
 3. `public/index.php/setup` で初期設定を完了
 4. `public/index.php/dashboard/login` へログイン
+5. `public/index.php/dashboard/database` で DB 設定とテスト
 
 ### 補足
 
@@ -80,6 +82,7 @@
 - Dashboard:
   - Login / logout
   - Basic system summary
+  - DB settings (connection test / schema init / SELECT runner)
   - Module enable/disable manager
   - Admin password update
 - Sample module:
@@ -94,6 +97,7 @@
 2. Open `karakuri.php` in a browser.
 3. Complete setup at `public/index.php/setup`.
 4. Login at `public/index.php/dashboard/login`.
+5. Configure DB at `public/index.php/dashboard/database`.
 
 ### Notes
 

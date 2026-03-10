@@ -41,6 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $config = [
             'site_name' => ($siteName === '') ? 'Karakuri' : $siteName,
             'allow_manual_modules' => $allowManualModules,
+            'database' => [
+                'driver' => 'json',
+                'sqlite_path' => 'storage/app.sqlite',
+                'mysql' => [
+                    'host' => '127.0.0.1',
+                    'port' => 3306,
+                    'database' => '',
+                    'username' => '',
+                    'password' => '',
+                    'charset' => 'utf8mb4',
+                ],
+            ],
             'installed_at' => date(DATE_ATOM),
         ];
         $okConfig = kr_write_json_file($configFile, $config);

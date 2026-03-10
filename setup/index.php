@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
+        // First admin bootstrap writes all runtime state in one transaction-like block.
         $admin = [
             'user' => $username,
             'password' => password_hash($password, PASSWORD_DEFAULT),
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($errors) {
             // Continue to show errors, do not redirect.
         } else {
+            // Setup is one-shot; remove this handler file best-effort after lock is written.
             $setupFile = __FILE__;
             @unlink($setupFile);
 

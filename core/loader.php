@@ -45,6 +45,7 @@ if ($baseDir !== '' && str_starts_with($path, $baseDir)) {
 
 $path = '/' . ltrim((string) $path, '/');
 
+// Setup is first-run only. Once locked, always send users to dashboard login.
 if ($path === '/setup') {
     if (file_exists($setupLockFile) || file_exists($adminFile)) {
         header('Location: ./dashboard/login', true, 302);
@@ -54,6 +55,7 @@ if ($path === '/setup') {
     exit;
 }
 
+// Dashboard routes are protected behind admin session checks.
 if ($path === '/dashboard') {
     if (!file_exists($adminFile)) {
         header('Location: ./setup', true, 302);
@@ -93,6 +95,7 @@ if ($path === '/dashboard/account') {
     exit;
 }
 
+// Login remains accessible until authenticated; protected routes redirect here.
 if ($path === '/dashboard/login') {
     if (!file_exists($adminFile)) {
         header('Location: ./setup', true, 302);
@@ -102,11 +105,13 @@ if ($path === '/dashboard/login') {
     exit;
 }
 
+// Logout is handled as dedicated endpoint to centralize session teardown.
 if ($path === '/dashboard/logout') {
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'logout.php';
     exit;
 }
 
+// Module routes are evaluated after built-in control routes.
 if (kr_dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $path)) {
     exit;
 }

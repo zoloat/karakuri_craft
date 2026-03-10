@@ -17,6 +17,7 @@ if (file_exists($modulesFile)) {
 
 $modules = [];
 $moduleSlugSet = [];
+// Build module catalog from filesystem metadata.
 $dirs = glob($modulesDir . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [];
 foreach ($dirs as $modulePath) {
     $slug = basename($modulePath);
@@ -24,7 +25,7 @@ foreach ($dirs as $modulePath) {
     if (!file_exists($metaFile)) {
         continue;
     }
-    $meta = json_decode((string) file_get_contents($metaFile), true);
+    $meta = kr_read_json_file($metaFile, []);
     if (!is_array($meta)) {
         continue;
     }
@@ -39,6 +40,7 @@ foreach ($dirs as $modulePath) {
 }
 
 $enabledSet = [];
+// Keep enabled state only for modules that are actually present on disk.
 foreach ($state['enabled'] as $slug) {
     if (is_string($slug) && $slug !== '' && isset($moduleSlugSet[$slug])) {
         $enabledSet[$slug] = true;
@@ -48,6 +50,7 @@ foreach ($state['enabled'] as $slug) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $slug = (string) ($_POST['slug'] ?? '');
     $action = (string) ($_POST['action'] ?? '');
+    // Accept state changes only with valid CSRF and known module slug.
     if (kr_csrf_validate((string) ($_POST['csrf_token'] ?? '')) && isset($moduleSlugSet[$slug])) {
         if ($action === 'enable') {
             $enabledSet[$slug] = true;
@@ -57,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newState = ['enabled' => array_values(array_keys($enabledSet))];
         kr_write_json_file($modulesFile, $newState);
     }
+    // Post/Redirect/Get to prevent duplicate actions on refresh.
     header('Location: ' . $baseUrl . '/dashboard/modules', true, 302);
     exit;
 }

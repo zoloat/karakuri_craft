@@ -23,6 +23,7 @@ function kr_load_modules(string $root, string $storage): array
         }
     }
 
+    // Normalize enabled list into a set for fast membership checks.
     $enabledSet = [];
     foreach ($state['enabled'] as $slug) {
         if (is_string($slug) && $slug !== '') {
@@ -34,6 +35,7 @@ function kr_load_modules(string $root, string $storage): array
     $loaded = [];
     $dirs = glob($modulesDir . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [];
 
+    // Scan every module directory and load only enabled entries with valid metadata.
     foreach ($dirs as $modulePath) {
         $slug = basename($modulePath);
         $metaFile = $modulePath . DIRECTORY_SEPARATOR . 'module.json';
@@ -54,6 +56,7 @@ function kr_load_modules(string $root, string $storage): array
             continue;
         }
 
+        // Module entry is executed in current runtime context by design.
         require $entryFile;
         $loaded[] = $slug;
     }

@@ -49,10 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storedUser = (string) ($admin['user'] ?? '');
     $storedHash = (string) ($admin['password'] ?? '');
 
+    // Validate in deterministic order to avoid leaking account state details.
     if (!$errors && ($username === '' || $password === '')) {
         $errors[] = 'Username and password are required.';
     } elseif (!$errors && ($username !== $storedUser || $storedHash === '' || !password_verify($password, $storedHash))) {
         $errors[] = 'Invalid credentials.';
+        // Track failed attempts per client IP to slow brute-force attacks.
         $state['count'] = (int) ($state['count'] ?? 0) + 1;
         if ($state['count'] >= $maxAttempts) {
             $state['lock_until'] = $now + $lockSeconds;
@@ -60,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $attempts[$key] = $state;
         kr_write_json_file($attemptsFile, $attempts);
     } elseif (!$errors) {
+        // Prevent session fixation after successful authentication.
         session_regenerate_id(true);
         $_SESSION['kr_admin_auth'] = true;
         $_SESSION['kr_admin_user'] = $storedUser;

@@ -1,8 +1,49 @@
 ﻿# karakuri_craft
 
-Lightweight modular PHP web-service scaffolding with a web-first installer.
+軽量なモジュラー型 PHP Web サービス基盤です。Web 起動のインストーラで初期構築し、最小コア + モジュールで実行します。
 
-## Current Scope
+## 日本語
+
+### 現在の実装範囲
+
+- Web 起動インストーラ: `karakuri.php`
+- 最小コアランタイム:
+  - `core/loader.php`
+  - `core/router.php`
+  - `core/module_loader.php`
+  - `core/helpers.php`
+  - `core/security.php`
+  - `core/storage.php`
+- セットアップ:
+  - 初回管理者作成（`storage/admin.json`）
+  - 初期設定保存（`storage/config.json`）
+  - モジュール有効化状態保存（`storage/modules.json`）
+  - 完了後ロック（`storage/setup.lock`）
+- ダッシュボード:
+  - ログイン / ログアウト
+  - 基本ステータス表示
+  - モジュール有効/無効切替
+  - 管理者パスワード変更
+- サンプルモジュール:
+  - `modules/welcome`
+  - `/` と `/health` を提供
+
+### クイックスタート
+
+1. PHP が動く環境にこのプロジェクトを配置
+2. ブラウザで `karakuri.php` を開く
+3. `public/index.php/setup` で初期設定を完了
+4. `public/index.php/dashboard/login` へログイン
+
+### 補足
+
+- `storage/` は実行時データ用（Git 管理対象外）
+- インストール方式は Web が主、CLI は補助
+- モジュール配布は Git 優先、ZIP は互換用途
+
+## English
+
+### Current Scope
 
 - Web-first bootstrap installer: `karakuri.php`
 - Minimal core runtime:
@@ -10,34 +51,31 @@ Lightweight modular PHP web-service scaffolding with a web-first installer.
   - `core/router.php`
   - `core/module_loader.php`
   - `core/helpers.php`
+  - `core/security.php`
+  - `core/storage.php`
 - Setup flow:
-  - Create admin account (`storage/admin.json`)
+  - Create first admin (`storage/admin.json`)
   - Save initial config (`storage/config.json`)
-  - Initialize enabled modules (`storage/modules.json`)
+  - Save enabled modules (`storage/modules.json`)
+  - Lock setup after completion (`storage/setup.lock`)
 - Dashboard:
   - Login / logout
   - Basic system summary
   - Module enable/disable manager
+  - Admin password update
 - Sample module:
   - `modules/welcome`
-  - Routes: `/` and `/health`
+  - Provides `/` and `/health`
 
-## Quick Start
+### Quick Start
 
 1. Put this project under your PHP web environment.
 2. Open `karakuri.php` in a browser.
-3. Click through setup at `public/index.php/setup`.
-4. Login to dashboard at `public/index.php/dashboard/login`.
+3. Complete setup at `public/index.php/setup`.
+4. Login at `public/index.php/dashboard/login`.
 
-## Runtime Files
+### Notes
 
-Generated or mutable runtime files are stored in `storage/` and are ignored by git.
-
-## Notes
-
-- Install mode policy:
-  - Web installer is the primary mode.
-  - CLI execution is optional helper mode.
-- Module distribution policy:
-  - Git-based distribution is preferred.
-  - ZIP is optional compatibility path.
+- `storage/` holds runtime data and is ignored by git.
+- Install mode policy: Web is primary, CLI is helper mode.
+- Module distribution policy: Git-first, ZIP as compatibility path.

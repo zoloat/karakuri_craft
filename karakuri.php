@@ -33,6 +33,7 @@ $environment = [
 ];
 
 $errors = [];
+// Create required runtime directories up front so later writes are predictable.
 foreach ($requiredDirs as $dir) {
     $path = $root . DIRECTORY_SEPARATOR . $dir;
     if (!is_dir($path) && !mkdir($path, 0755, true) && !is_dir($path)) {
@@ -47,6 +48,7 @@ $modulesFile = $storagePath . DIRECTORY_SEPARATOR . 'modules.json';
 $htaccessFile = $storagePath . DIRECTORY_SEPARATOR . '.htaccess';
 $lockFile = $root . DIRECTORY_SEPARATOR . 'install.lock';
 
+// Write initial runtime files only when directory bootstrap succeeded.
 if (!$errors) {
     file_put_contents($environmentFile, json_encode($environment, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -73,6 +75,7 @@ if (!$errors) {
     }
 }
 
+// CLI mode is helper-only; web mode remains the primary installer flow.
 if ($isCli) {
     if ($errors) {
         fwrite(STDERR, "Karakuri installer failed:\n- " . implode("\n- ", $errors) . "\n");
@@ -85,6 +88,7 @@ if ($isCli) {
 
 header('Content-Type: text/html; charset=UTF-8');
 
+// Show explicit bootstrap errors in web mode so shared-hosting users can self-diagnose.
 if ($errors) {
     http_response_code(500);
     echo "<h1>Karakuri Installer Error</h1><ul>";

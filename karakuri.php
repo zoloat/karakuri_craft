@@ -102,9 +102,14 @@ if ($errors) {
 $setupUrl = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
 $setupUrl = ($setupUrl === '' || $setupUrl === '.') ? '' : $setupUrl;
 $setupUrl .= '/public/index.php/setup';
+$cssUrl = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
+$cssUrl = ($cssUrl === '' || $cssUrl === '.') ? '' : $cssUrl;
+$cssUrl .= '/public/assets/setup.css';
 
-echo "<!doctype html><html><head><meta charset='utf-8'><title>Karakuri Installer</title></head><body>";
+echo "<!doctype html><html><head><meta charset='utf-8'><title>Karakuri Installer</title>";
+echo "<link rel='stylesheet' href='" . htmlspecialchars($cssUrl, ENT_QUOTES, 'UTF-8') . "'>";
+echo "</head><body><main class='card'>";
 echo "<h1>Karakuri installed</h1>";
 echo "<p>Environment and initial config were created in <code>storage/</code>.</p>";
 echo "<p><a href='" . htmlspecialchars($setupUrl, ENT_QUOTES, 'UTF-8') . "'>Go to setup</a></p>";
-echo "</body></html>";
+echo "</main></body></html>";

@@ -81,7 +81,7 @@ header('Content-Type: text/html; charset=UTF-8');
 </head>
 <body>
   <h1>Module Manager</h1>
-  <p><a href="./dashboard">Back to dashboard</a></p>
+  <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">Back to dashboard</a></p>
 
   <?php if (!$modules): ?>
     <p>No modules found.</p>

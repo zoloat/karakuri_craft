@@ -25,6 +25,8 @@ if (file_exists($modulesFile)) {
     }
 }
 
+$baseUrl = kr_base_url();
+
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
@@ -37,12 +39,12 @@ header('Content-Type: text/html; charset=UTF-8');
 <body>
   <h1>Karakuri Dashboard</h1>
   <p>Setup is complete.</p>
-  <form method="post" action="./dashboard/logout">
+  <form method="post" action="<?= htmlspecialchars($baseUrl . '/dashboard/logout', ENT_QUOTES, 'UTF-8') ?>">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
     <button type="submit">Logout</button>
   </form>
-  <p><a href="./dashboard/account">Admin Account</a></p>
-  <p><a href="./dashboard/modules">Module Manager</a></p>
+  <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard/account', ENT_QUOTES, 'UTF-8') ?>">Admin Account</a></p>
+  <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard/modules', ENT_QUOTES, 'UTF-8') ?>">Module Manager</a></p>
   <ul>
     <li>Site: <?= htmlspecialchars((string) ($config['site_name'] ?? 'Karakuri'), ENT_QUOTES, 'UTF-8') ?></li>
     <li>Admin: <?= htmlspecialchars((string) ($admin['user'] ?? '(not set)'), ENT_QUOTES, 'UTF-8') ?></li>

@@ -48,18 +48,32 @@ $setupLockFile = $storage . DIRECTORY_SEPARATOR . 'setup.lock';
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $baseDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+$scriptPath = str_replace('\\', '/', $scriptName);
 $path = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 
-if ($baseDir !== '' && str_starts_with($path, $baseDir)) {
+// Support both "/public/index.php/setup" and rewritten "/public/setup" style URLs.
+if ($scriptPath !== '' && str_starts_with($path, $scriptPath)) {
+    $path = substr($path, strlen($scriptPath));
+} elseif ($baseDir !== '' && str_starts_with($path, $baseDir)) {
     $path = substr($path, strlen($baseDir));
 }
 
+// Some local server setups expose SCRIPT_NAME as "/index.php" while URI includes a prefix.
+$frontIndex = '/index.php';
+$indexPos = strpos($path, $frontIndex);
+if ($indexPos !== false) {
+    $path = substr($path, $indexPos + strlen($frontIndex));
+}
+
 $path = '/' . ltrim((string) $path, '/');
+if ($path === '//') {
+    $path = '/';
+}
 
 // Setup is first-run only. Once locked, always send users to dashboard login.
 if ($path === '/setup') {
     if (file_exists($setupLockFile) || file_exists($adminFile)) {
-        header('Location: ./dashboard/login', true, 302);
+        header('Location: ' . kr_base_url() . '/dashboard/login', true, 302);
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'setup' . DIRECTORY_SEPARATOR . 'index.php';
@@ -69,11 +83,11 @@ if ($path === '/setup') {
 // Dashboard routes are protected behind admin session checks.
 if ($path === '/dashboard') {
     if (!file_exists($adminFile)) {
-        header('Location: ./setup', true, 302);
+        header('Location: ' . kr_base_url() . '/setup', true, 302);
         exit;
     }
     if (empty($_SESSION['kr_admin_auth'])) {
-        header('Location: ./dashboard/login', true, 302);
+        header('Location: ' . kr_base_url() . '/dashboard/login', true, 302);
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'index.php';
@@ -82,11 +96,11 @@ if ($path === '/dashboard') {
 
 if ($path === '/dashboard/modules') {
     if (!file_exists($adminFile)) {
-        header('Location: ./setup', true, 302);
+        header('Location: ' . kr_base_url() . '/setup', true, 302);
         exit;
     }
     if (empty($_SESSION['kr_admin_auth'])) {
-        header('Location: ./dashboard/login', true, 302);
+        header('Location: ' . kr_base_url() . '/dashboard/login', true, 302);
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'modules.php';
@@ -95,11 +109,11 @@ if ($path === '/dashboard/modules') {
 
 if ($path === '/dashboard/account') {
     if (!file_exists($adminFile)) {
-        header('Location: ./setup', true, 302);
+        header('Location: ' . kr_base_url() . '/setup', true, 302);
         exit;
     }
     if (empty($_SESSION['kr_admin_auth'])) {
-        header('Location: ./dashboard/login', true, 302);
+        header('Location: ' . kr_base_url() . '/dashboard/login', true, 302);
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'account.php';
@@ -109,7 +123,7 @@ if ($path === '/dashboard/account') {
 // Login remains accessible until authenticated; protected routes redirect here.
 if ($path === '/dashboard/login') {
     if (!file_exists($adminFile)) {
-        header('Location: ./setup', true, 302);
+        header('Location: ' . kr_base_url() . '/setup', true, 302);
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'login.php';
@@ -132,5 +146,5 @@ header('Content-Type: text/html; charset=UTF-8');
 echo '<!doctype html><html><head><meta charset="utf-8"><title>Karakuri</title></head><body>';
 echo '<h1>404 Not Found</h1>';
 echo '<p>No route matched: <code>' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8') . '</code></p>';
-echo '<p><a href="./">Back to home</a></p>';
+echo '<p><a href="' . htmlspecialchars(kr_base_url(), ENT_QUOTES, 'UTF-8') . '/">Back to home</a></p>';
 echo '</body></html>';

@@ -35,7 +35,14 @@ function kr_send_security_headers(): void
 
 function kr_base_url(): string
 {
-    return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/public/index.php')), '/');
+    $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/public/index.php'));
+    if ($scriptName === '' || $scriptName === '/') {
+        return '/public/index.php';
+    }
+    if (!str_ends_with($scriptName, '.php')) {
+        $scriptName = rtrim($scriptName, '/') . '/index.php';
+    }
+    return $scriptName;
 }
 
 function kr_client_ip(): string

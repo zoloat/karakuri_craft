@@ -14,6 +14,7 @@
   - `core/helpers.php`
   - `core/security.php`
   - `core/storage.php`
+  - `core/contracts/*`（Request/Response/Server/Member/Storage の手引き付き契約）
 - セットアップ:
   - 初回管理者作成（`storage/admin.json`）
   - 初期設定保存（`storage/config.json`）
@@ -40,6 +41,9 @@
 - `storage/` は実行時データ用（Git 管理対象外）
 - インストール方式は Web が主、CLI は補助
 - モジュール配布は Git 優先、ZIP は互換用途
+- 人/AI が最初に読む入口:
+  - `core/contracts/*.php`（使える情報の手引き）
+  - `modules/welcome/module.php`（利用例）
 
 ## English
 
@@ -53,6 +57,7 @@
   - `core/helpers.php`
   - `core/security.php`
   - `core/storage.php`
+  - `core/contracts/*` (guided contracts for Request/Response/Server/Member/Storage)
 - Setup flow:
   - Create first admin (`storage/admin.json`)
   - Save initial config (`storage/config.json`)
@@ -79,3 +84,6 @@
 - `storage/` holds runtime data and is ignored by git.
 - Install mode policy: Web is primary, CLI is helper mode.
 - Module distribution policy: Git-first, ZIP as compatibility path.
+- First files to read for human/AI users:
+  - `core/contracts/*.php` (guided API surface)
+  - `modules/welcome/module.php` (usage example)

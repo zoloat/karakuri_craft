@@ -20,13 +20,24 @@ if (!is_array($config)) {
 $GLOBALS['kr_config'] = $config;
 
 require __DIR__ . DIRECTORY_SEPARATOR . 'security.php';
-require __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'router.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'storage.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'RequestContext.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'ResponseContext.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'ServerContext.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'MemberContext.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'StorageContext.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'module_loader.php';
 
 kr_start_session();
 kr_send_security_headers();
+
+$GLOBALS['kr_request'] = new KrRequestContext();
+$GLOBALS['kr_response'] = new KrResponseContext();
+$GLOBALS['kr_server'] = new KrServerContext();
+$GLOBALS['kr_member'] = new KrMemberContext();
+$GLOBALS['kr_storage'] = new KrStorageContext($storage);
 
 $moduleState = kr_load_modules($root, $storage);
 $GLOBALS['kr_module_state'] = $moduleState;
@@ -112,7 +123,7 @@ if ($path === '/dashboard/logout') {
 }
 
 // Module routes are evaluated after built-in control routes.
-if (kr_dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $path)) {
+if (kr_dispatch(kr_request()->method(), $path)) {
     exit;
 }
 

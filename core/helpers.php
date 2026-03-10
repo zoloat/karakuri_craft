@@ -38,3 +38,43 @@ function kr_config(?string $key = null, mixed $default = null): mixed
     }
     return $config[$key] ?? $default;
 }
+
+/**
+ * Access the request context created by core loader.
+ */
+function kr_request(): KrRequestContext
+{
+    return $GLOBALS['kr_request'];
+}
+
+/**
+ * Access the response context created by core loader.
+ */
+function kr_response(): KrResponseContext
+{
+    return $GLOBALS['kr_response'];
+}
+
+/**
+ * Access the server context created by core loader.
+ */
+function kr_server(): KrServerContext
+{
+    return $GLOBALS['kr_server'];
+}
+
+/**
+ * Access the member context created by core loader.
+ */
+function kr_member(): KrMemberContext
+{
+    return $GLOBALS['kr_member'];
+}
+
+/**
+ * Access the storage context created by core loader.
+ */
+function kr_storage(): KrStorageContext
+{
+    return $GLOBALS['kr_storage'];
+}

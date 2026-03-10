@@ -7,6 +7,33 @@ declare(strict_types=1);
 
 $isCli = PHP_SAPI === 'cli';
 $root = __DIR__;
+$lockFile = $root . DIRECTORY_SEPARATOR . 'install.lock';
+
+$baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
+$baseUrl = ($baseUrl === '' || $baseUrl === '.') ? '' : $baseUrl;
+$setupUrl = $baseUrl . '/public/index.php/setup';
+$dashboardLoginUrl = $baseUrl . '/public/index.php/dashboard/login';
+$cssUrl = $baseUrl . '/public/assets/setup.css';
+
+// Hard stop: once installed, do not run bootstrap again.
+if (file_exists($lockFile)) {
+    if ($isCli) {
+        fwrite(STDOUT, "Karakuri is already installed. Bootstrap is locked.\n");
+        fwrite(STDOUT, "Open: /public/index.php/dashboard/login\n");
+        exit(0);
+    }
+
+    header('Content-Type: text/html; charset=UTF-8');
+    echo "<!doctype html><html><head><meta charset='utf-8'><title>Karakuri Installer</title>";
+    echo "<link rel='stylesheet' href='" . htmlspecialchars($cssUrl, ENT_QUOTES, 'UTF-8') . "'>";
+    echo "</head><body><main class='card'>";
+    echo "<h1>Karakuri is already installed</h1>";
+    echo "<p>Bootstrap is locked by <code>install.lock</code>.</p>";
+    echo "<p><a href='" . htmlspecialchars($dashboardLoginUrl, ENT_QUOTES, 'UTF-8') . "'>Go to dashboard login</a></p>";
+    echo "<p><a href='" . htmlspecialchars($setupUrl, ENT_QUOTES, 'UTF-8') . "'>Setup (locked)</a></p>";
+    echo "</main></body></html>";
+    exit;
+}
 
 $requiredDirs = [
     'core',
@@ -46,7 +73,6 @@ $environmentFile = $storagePath . DIRECTORY_SEPARATOR . 'environment.json';
 $configFile = $storagePath . DIRECTORY_SEPARATOR . 'config.json';
 $modulesFile = $storagePath . DIRECTORY_SEPARATOR . 'modules.json';
 $htaccessFile = $storagePath . DIRECTORY_SEPARATOR . '.htaccess';
-$lockFile = $root . DIRECTORY_SEPARATOR . 'install.lock';
 
 // Write initial runtime files only when directory bootstrap succeeded.
 if (!$errors) {
@@ -98,13 +124,6 @@ if ($errors) {
     echo "</ul>";
     exit;
 }
-
-$setupUrl = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
-$setupUrl = ($setupUrl === '' || $setupUrl === '.') ? '' : $setupUrl;
-$setupUrl .= '/public/index.php/setup';
-$cssUrl = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
-$cssUrl = ($cssUrl === '' || $cssUrl === '.') ? '' : $cssUrl;
-$cssUrl .= '/public/assets/setup.css';
 
 echo "<!doctype html><html><head><meta charset='utf-8'><title>Karakuri Installer</title>";
 echo "<link rel='stylesheet' href='" . htmlspecialchars($cssUrl, ENT_QUOTES, 'UTF-8') . "'>";

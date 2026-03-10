@@ -4,15 +4,39 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
+$attemptsFile = $storage . DIRECTORY_SEPARATOR . 'login_attempts.json';
 $baseUrl = kr_base_url();
 
 $errors = [];
 $admin = [];
+if (!empty($_SESSION['kr_admin_auth'])) {
+    header('Location: ' . $baseUrl . '/dashboard', true, 302);
+    exit;
+}
 if (file_exists($adminFile)) {
-    $decoded = json_decode((string) file_get_contents($adminFile), true);
-    if (is_array($decoded)) {
-        $admin = $decoded;
-    }
+    $admin = kr_read_json_file($adminFile, []);
+}
+
+$ip = kr_client_ip();
+$attempts = kr_read_json_file($attemptsFile, []);
+$key = 'ip:' . $ip;
+$now = time();
+$window = 300;
+$maxAttempts = 5;
+$lockSeconds = 600;
+$state = $attempts[$key] ?? [
+    'count' => 0,
+    'first_at' => $now,
+    'lock_until' => 0,
+];
+
+if (($state['lock_until'] ?? 0) > $now) {
+    $wait = (int) $state['lock_until'] - $now;
+    $errors[] = 'Too many failed attempts. Try again in ' . $wait . ' seconds.';
+}
+
+if (($state['first_at'] ?? 0) + $window < $now) {
+    $state = ['count' => 0, 'first_at' => $now, 'lock_until' => 0];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,10 +53,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Username and password are required.';
     } elseif (!$errors && ($username !== $storedUser || $storedHash === '' || !password_verify($password, $storedHash))) {
         $errors[] = 'Invalid credentials.';
+        $state['count'] = (int) ($state['count'] ?? 0) + 1;
+        if ($state['count'] >= $maxAttempts) {
+            $state['lock_until'] = $now + $lockSeconds;
+        }
+        $attempts[$key] = $state;
+        kr_write_json_file($attemptsFile, $attempts);
     } elseif (!$errors) {
         session_regenerate_id(true);
         $_SESSION['kr_admin_auth'] = true;
         $_SESSION['kr_admin_user'] = $storedUser;
+        unset($attempts[$key]);
+        kr_write_json_file($attemptsFile, $attempts);
         header('Location: ' . $baseUrl . '/dashboard', true, 302);
         exit;
     }

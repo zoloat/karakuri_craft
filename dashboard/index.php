@@ -9,24 +9,18 @@ $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
 
 $config = [];
 if (file_exists($configFile)) {
-    $decoded = json_decode((string) file_get_contents($configFile), true);
-    if (is_array($decoded)) {
-        $config = $decoded;
-    }
+    $config = kr_read_json_file($configFile, []);
 }
 
 $admin = [];
 if (file_exists($adminFile)) {
-    $decoded = json_decode((string) file_get_contents($adminFile), true);
-    if (is_array($decoded)) {
-        $admin = $decoded;
-    }
+    $admin = kr_read_json_file($adminFile, []);
 }
 
 $modulesState = ['enabled' => []];
 if (file_exists($modulesFile)) {
-    $decoded = json_decode((string) file_get_contents($modulesFile), true);
-    if (is_array($decoded) && isset($decoded['enabled']) && is_array($decoded['enabled'])) {
+    $decoded = kr_read_json_file($modulesFile, ['enabled' => []]);
+    if (isset($decoded['enabled']) && is_array($decoded['enabled'])) {
         $modulesState = $decoded;
     }
 }
@@ -47,6 +41,7 @@ header('Content-Type: text/html; charset=UTF-8');
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
     <button type="submit">Logout</button>
   </form>
+  <p><a href="./dashboard/account">Admin Account</a></p>
   <p><a href="./dashboard/modules">Module Manager</a></p>
   <ul>
     <li>Site: <?= htmlspecialchars((string) ($config['site_name'] ?? 'Karakuri'), ENT_QUOTES, 'UTF-8') ?></li>

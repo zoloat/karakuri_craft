@@ -9,8 +9,8 @@ $baseUrl = kr_base_url();
 
 $state = ['enabled' => []];
 if (file_exists($modulesFile)) {
-    $decoded = json_decode((string) file_get_contents($modulesFile), true);
-    if (is_array($decoded) && isset($decoded['enabled']) && is_array($decoded['enabled'])) {
+    $decoded = kr_read_json_file($modulesFile, ['enabled' => []]);
+    if (isset($decoded['enabled']) && is_array($decoded['enabled'])) {
         $state = $decoded;
     }
 }
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($enabledSet[$slug]);
         }
         $newState = ['enabled' => array_values(array_keys($enabledSet))];
-        file_put_contents($modulesFile, json_encode($newState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        kr_write_json_file($modulesFile, $newState);
     }
     header('Location: ' . $baseUrl . '/dashboard/modules', true, 302);
     exit;

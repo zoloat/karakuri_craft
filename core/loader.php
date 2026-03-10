@@ -22,6 +22,7 @@ $GLOBALS['kr_config'] = $config;
 require __DIR__ . DIRECTORY_SEPARATOR . 'security.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'router.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'storage.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'module_loader.php';
 
 kr_start_session();
@@ -31,6 +32,7 @@ $moduleState = kr_load_modules($root, $storage);
 $GLOBALS['kr_module_state'] = $moduleState;
 
 $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
+$setupLockFile = $storage . DIRECTORY_SEPARATOR . 'setup.lock';
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
@@ -44,6 +46,10 @@ if ($baseDir !== '' && str_starts_with($path, $baseDir)) {
 $path = '/' . ltrim((string) $path, '/');
 
 if ($path === '/setup') {
+    if (file_exists($setupLockFile) || file_exists($adminFile)) {
+        header('Location: ./dashboard/login', true, 302);
+        exit;
+    }
     require $root . DIRECTORY_SEPARATOR . 'setup' . DIRECTORY_SEPARATOR . 'index.php';
     exit;
 }
@@ -71,6 +77,19 @@ if ($path === '/dashboard/modules') {
         exit;
     }
     require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'modules.php';
+    exit;
+}
+
+if ($path === '/dashboard/account') {
+    if (!file_exists($adminFile)) {
+        header('Location: ./setup', true, 302);
+        exit;
+    }
+    if (empty($_SESSION['kr_admin_auth'])) {
+        header('Location: ./dashboard/login', true, 302);
+        exit;
+    }
+    require $root . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'account.php';
     exit;
 }
 

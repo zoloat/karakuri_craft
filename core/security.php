@@ -38,6 +38,20 @@ function kr_base_url(): string
     return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/public/index.php')), '/');
 }
 
+function kr_client_ip(): string
+{
+    $candidate = trim((string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+    if ($candidate !== '') {
+        $parts = explode(',', $candidate);
+        $ip = trim((string) $parts[0]);
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+    }
+    $remote = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    return $remote !== '' ? $remote : 'unknown';
+}
+
 function kr_csrf_token(): string
 {
     if (empty($_SESSION['kr_csrf']) || !is_string($_SESSION['kr_csrf'])) {

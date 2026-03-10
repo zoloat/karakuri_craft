@@ -6,6 +6,7 @@ $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
 $configFile = $storage . DIRECTORY_SEPARATOR . 'config.json';
 $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
+$setupLockFile = $storage . DIRECTORY_SEPARATOR . 'setup.lock';
 
 $errors = [];
 
@@ -32,23 +33,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'password' => password_hash($password, PASSWORD_DEFAULT),
             'created_at' => date(DATE_ATOM),
         ];
-        file_put_contents($adminFile, json_encode($admin, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $okAdmin = kr_write_json_file($adminFile, $admin);
 
         $config = [
             'site_name' => ($siteName === '') ? 'Karakuri' : $siteName,
             'allow_manual_modules' => $allowManualModules,
             'installed_at' => date(DATE_ATOM),
         ];
-        file_put_contents($configFile, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $okConfig = kr_write_json_file($configFile, $config);
 
         $modulesState = [
             'enabled' => ['welcome'],
         ];
-        file_put_contents($modulesFile, json_encode($modulesState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $okModules = kr_write_json_file($modulesFile, $modulesState);
 
-        $baseUrl = kr_base_url();
-        header('Location: ' . $baseUrl . '/dashboard', true, 302);
-        exit;
+        $okLock = file_put_contents(
+            $setupLockFile,
+            "locked_at=" . date(DATE_ATOM) . PHP_EOL,
+            LOCK_EX
+        ) !== false;
+
+        if (!($okAdmin && $okConfig && $okModules && $okLock)) {
+            $errors[] = 'Failed to save setup files.';
+        }
+
+        if ($errors) {
+            // Continue to show errors, do not redirect.
+        } else {
+            $setupFile = __FILE__;
+            @unlink($setupFile);
+
+            $baseUrl = kr_base_url();
+            header('Location: ' . $baseUrl . '/dashboard/login', true, 302);
+            exit;
+        }
     }
 }
 

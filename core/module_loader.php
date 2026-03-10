@@ -17,7 +17,7 @@ function kr_load_modules(string $root, string $storage): array
 
     $state = ['enabled' => []];
     if (file_exists($modulesStateFile)) {
-        $decoded = json_decode((string) file_get_contents($modulesStateFile), true);
+        $decoded = kr_read_json_file($modulesStateFile, ['enabled' => []]);
         if (is_array($decoded) && isset($decoded['enabled']) && is_array($decoded['enabled'])) {
             $state = $decoded;
         }
@@ -42,7 +42,7 @@ function kr_load_modules(string $root, string $storage): array
             continue;
         }
 
-        $meta = json_decode((string) file_get_contents($metaFile), true);
+        $meta = kr_read_json_file($metaFile, []);
         if (!is_array($meta)) {
             continue;
         }

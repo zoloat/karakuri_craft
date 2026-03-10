@@ -81,12 +81,14 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Dashboard Login</title>
+  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
+  <main class="card">
   <h1>Dashboard Login</h1>
 
   <?php if ($errors): ?>
-    <ul>
+    <ul class="notice">
       <?php foreach ($errors as $error): ?>
         <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
       <?php endforeach; ?>
@@ -105,5 +107,6 @@ header('Content-Type: text/html; charset=UTF-8');
     </div>
     <button type="submit">Login</button>
   </form>
+  </main>
 </body>
 </html>

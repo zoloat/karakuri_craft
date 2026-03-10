@@ -53,13 +53,15 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Account</title>
+  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
+  <main class="card">
   <h1>Admin Account</h1>
   <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">Back to dashboard</a></p>
 
   <?php if ($errors): ?>
-    <ul>
+    <ul class="notice">
       <?php foreach ($errors as $error): ?>
         <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
       <?php endforeach; ?>
@@ -90,5 +92,6 @@ header('Content-Type: text/html; charset=UTF-8');
     </div>
     <button type="submit">Update password</button>
   </form>
+  </main>
 </body>
 </html>

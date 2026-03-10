@@ -7,6 +7,7 @@ $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
 $configFile = $storage . DIRECTORY_SEPARATOR . 'config.json';
 $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
 $setupLockFile = $storage . DIRECTORY_SEPARATOR . 'setup.lock';
+$baseUrl = kr_base_url();
 
 $errors = [];
 
@@ -65,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $setupFile = __FILE__;
             @unlink($setupFile);
 
-            $baseUrl = kr_base_url();
             header('Location: ' . $baseUrl . '/dashboard/login', true, 302);
             exit;
         }
@@ -80,13 +80,15 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Setup</title>
+  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
+  <main class="card">
   <h1>Karakuri Setup</h1>
   <p>Create the first admin account and initial configuration.</p>
 
   <?php if ($errors): ?>
-    <ul>
+    <ul class="notice">
       <?php foreach ($errors as $error): ?>
         <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
       <?php endforeach; ?>
@@ -115,5 +117,6 @@ header('Content-Type: text/html; charset=UTF-8');
     </div>
     <button type="submit">Complete setup</button>
   </form>
+  </main>
 </body>
 </html>

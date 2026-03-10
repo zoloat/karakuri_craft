@@ -35,8 +35,10 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Dashboard</title>
+  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
+  <main class="card">
   <h1>Karakuri Dashboard</h1>
   <p>Setup is complete.</p>
   <form method="post" action="<?= htmlspecialchars($baseUrl . '/dashboard/logout', ENT_QUOTES, 'UTF-8') ?>">
@@ -51,5 +53,6 @@ header('Content-Type: text/html; charset=UTF-8');
     <li>Manual modules: <?= !empty($config['allow_manual_modules']) ? 'enabled' : 'disabled' ?></li>
     <li>Enabled modules: <?= htmlspecialchars(implode(', ', $modulesState['enabled']), ENT_QUOTES, 'UTF-8') ?: '(none)' ?></li>
   </ul>
+  </main>
 </body>
 </html>

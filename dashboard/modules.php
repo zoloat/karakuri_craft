@@ -6,6 +6,7 @@ $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $modulesDir = $root . DIRECTORY_SEPARATOR . 'modules';
 $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
 $baseUrl = kr_base_url();
+$publicBaseUrl = kr_public_base_url();
 
 $state = ['enabled' => []];
 if (file_exists($modulesFile)) {
@@ -78,7 +79,7 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Module Manager</title>
-  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars($publicBaseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
   <main class="card">

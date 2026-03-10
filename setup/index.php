@@ -8,6 +8,7 @@ $configFile = $storage . DIRECTORY_SEPARATOR . 'config.json';
 $modulesFile = $storage . DIRECTORY_SEPARATOR . 'modules.json';
 $setupLockFile = $storage . DIRECTORY_SEPARATOR . 'setup.lock';
 $baseUrl = kr_base_url();
+$publicBaseUrl = kr_public_base_url();
 
 $errors = [];
 
@@ -80,7 +81,7 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Setup</title>
-  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars($publicBaseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
   <main class="card">

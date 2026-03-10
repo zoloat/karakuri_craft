@@ -6,6 +6,7 @@ $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
 $attemptsFile = $storage . DIRECTORY_SEPARATOR . 'login_attempts.json';
 $baseUrl = kr_base_url();
+$publicBaseUrl = kr_public_base_url();
 
 $errors = [];
 $admin = [];
@@ -81,7 +82,7 @@ header('Content-Type: text/html; charset=UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Karakuri Dashboard Login</title>
-  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars($publicBaseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
   <main class="card">

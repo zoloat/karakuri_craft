@@ -45,6 +45,12 @@ function kr_base_url(): string
     return $scriptName;
 }
 
+function kr_public_base_url(): string
+{
+    $base = str_replace('\\', '/', dirname(kr_base_url()));
+    return rtrim($base, '/');
+}
+
 function kr_client_ip(): string
 {
     $candidate = trim((string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));

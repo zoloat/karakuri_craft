@@ -28,6 +28,8 @@
 - サンプルモジュール:
   - `modules/welcome`
   - `/` と `/health` を提供
+  - `modules/database`
+  - `/db/status` でDB状態を確認
 
 ### クイックスタート
 
@@ -44,6 +46,18 @@
 - 人/AI が最初に読む入口:
   - `core/contracts/*.php`（使える情報の手引き）
   - `modules/welcome/module.php`（利用例）
+  - `modules/database/module.php`（DB利用例）
+
+### DB設定例（config.json）
+
+```json
+{
+  "database": {
+    "driver": "sqlite",
+    "sqlite_path": "storage/app.sqlite"
+  }
+}
+```
 
 ## English
 
@@ -71,6 +85,8 @@
 - Sample module:
   - `modules/welcome`
   - Provides `/` and `/health`
+  - `modules/database`
+  - Exposes `/db/status` for DB status
 
 ### Quick Start
 
@@ -87,3 +103,15 @@
 - First files to read for human/AI users:
   - `core/contracts/*.php` (guided API surface)
   - `modules/welcome/module.php` (usage example)
+  - `modules/database/module.php` (database usage example)
+
+### DB config example (`config.json`)
+
+```json
+{
+  "database": {
+    "driver": "sqlite",
+    "sqlite_path": "storage/app.sqlite"
+  }
+}
+```

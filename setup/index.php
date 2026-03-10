@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $okConfig = kr_write_json_file($configFile, $config);
 
         $modulesState = [
-            'enabled' => ['welcome'],
+            'enabled' => ['welcome', 'database'],
         ];
         $okModules = kr_write_json_file($modulesFile, $modulesState);
 

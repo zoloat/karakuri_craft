@@ -1,0 +1,8 @@
+{
+  "name": "Database Module",
+  "slug": "database",
+  "version": "1.0.0",
+  "description": "Database status and PDO provider for modules.",
+  "type": "service",
+  "category": "database"
+}

@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(wc -l /c/Users/admin/Documents/codex/karakuri/core/*.php /c/Users/admin/Documents/codex/karakuri/dashboard/*.php /c/Users/admin/Documents/codex/karakuri/setup/*.php)"
-    ]
-  }
-}

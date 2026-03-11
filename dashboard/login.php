@@ -5,13 +5,12 @@ $root = dirname(__DIR__);
 $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $adminFile = $storage . DIRECTORY_SEPARATOR . 'admin.json';
 $attemptsFile = $storage . DIRECTORY_SEPARATOR . 'login_attempts.json';
-$baseUrl = kr_base_url();
 $publicBaseUrl = kr_public_base_url();
 
 $errors = [];
 $admin = [];
 if (!empty($_SESSION['kr_admin_auth'])) {
-    header('Location: ' . $baseUrl . '/dashboard', true, 302);
+    header('Location: ' . kr_url('/dashboard'), true, 302);
     exit;
 }
 if (file_exists($adminFile)) {
@@ -33,7 +32,7 @@ $state = $attempts[$key] ?? [
 
 if (($state['lock_until'] ?? 0) > $now) {
     $wait = (int) $state['lock_until'] - $now;
-    $errors[] = 'Too many failed attempts. Try again in ' . $wait . ' seconds.';
+    $errors[] = kr_tf('login.too_many_attempts', ['seconds' => $wait]);
 }
 
 if (($state['first_at'] ?? 0) + $window < $now) {
@@ -42,7 +41,7 @@ if (($state['first_at'] ?? 0) + $window < $now) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kr_csrf_validate((string) ($_POST['csrf_token'] ?? ''))) {
-        $errors[] = 'Invalid CSRF token.';
+        $errors[] = kr_t('login.invalid_csrf');
     }
 
     $username = trim((string) ($_POST['username'] ?? ''));
@@ -52,9 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate in deterministic order to avoid leaking account state details.
     if (!$errors && ($username === '' || $password === '')) {
-        $errors[] = 'Username and password are required.';
+        $errors[] = kr_t('login.required');
     } elseif (!$errors && ($username !== $storedUser || $storedHash === '' || !password_verify($password, $storedHash))) {
-        $errors[] = 'Invalid credentials.';
+        $errors[] = kr_t('login.invalid_credentials');
         // Track failed attempts per client IP to slow brute-force attacks.
         $state['count'] = (int) ($state['count'] ?? 0) + 1;
         if ($state['count'] >= $maxAttempts) {
@@ -69,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['kr_admin_user'] = $storedUser;
         unset($attempts[$key]);
         kr_write_json_file($attemptsFile, $attempts);
-        header('Location: ' . $baseUrl . '/dashboard', true, 302);
+        header('Location: ' . kr_url('/dashboard'), true, 302);
         exit;
     }
 }
@@ -77,16 +76,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= htmlspecialchars(kr_lang(), ENT_QUOTES, 'UTF-8') ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Karakuri Dashboard Login</title>
+  <title><?= htmlspecialchars(kr_t('login.title'), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="<?= htmlspecialchars($publicBaseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
   <main class="card">
-  <h1>Dashboard Login</h1>
+  <?php
+    $pageTitle = kr_t('login.title');
+    require __DIR__ . '/_header.php';
+  ?>
 
   <?php if ($errors): ?>
     <ul class="notice">
@@ -99,14 +101,14 @@ header('Content-Type: text/html; charset=UTF-8');
   <form method="post" action="">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
     <div>
-      <label for="username">Username</label><br>
+      <label for="username"><?= htmlspecialchars(kr_t('login.username'), ENT_QUOTES, 'UTF-8') ?></label><br>
       <input id="username" name="username" type="text" required>
     </div>
     <div>
-      <label for="password">Password</label><br>
+      <label for="password"><?= htmlspecialchars(kr_t('login.password'), ENT_QUOTES, 'UTF-8') ?></label><br>
       <input id="password" name="password" type="password" required>
     </div>
-    <button type="submit">Login</button>
+    <button type="submit"><?= htmlspecialchars(kr_t('login.submit'), ENT_QUOTES, 'UTF-8') ?></button>
   </form>
   </main>
 </body>

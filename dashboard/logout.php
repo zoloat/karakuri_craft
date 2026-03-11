@@ -12,6 +12,5 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     session_destroy();
 }
 
-$baseUrl = kr_base_url();
-header('Location: ' . $baseUrl . '/dashboard/login', true, 302);
+header('Location: ' . kr_url('/dashboard/login'), true, 302);
 exit;

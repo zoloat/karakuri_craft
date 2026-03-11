@@ -4,7 +4,6 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $storage = $root . DIRECTORY_SEPARATOR . 'storage';
 $configFile = $storage . DIRECTORY_SEPARATOR . 'config.json';
-$baseUrl = kr_base_url();
 $publicBaseUrl = kr_public_base_url();
 
 $config = kr_read_json_file($configFile, []);
@@ -125,7 +124,7 @@ $resolvePdo = static function () use (&$hasDatabaseService, &$buildDbConfig, &$l
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kr_csrf_validate((string) ($_POST['csrf_token'] ?? ''))) {
-        $errors[] = 'Invalid CSRF token.';
+        $errors[] = kr_t('database.invalid_csrf');
     }
 
     $driver = strtolower(trim((string) ($_POST['driver'] ?? $driver)));
@@ -149,9 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'save' || $action === 'test' || $action === 'init_schema') {
             if (!kr_write_json_file($configFile, $config)) {
-                $errors[] = 'Failed to save database configuration.';
+                $errors[] = kr_t('database.save_failed');
             } elseif ($action === 'save') {
-                $messages[] = 'Database configuration saved.';
+                $messages[] = kr_t('database.saved');
             }
         }
     }
@@ -161,18 +160,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($status['driver'] === 'json') {
             if ($action === 'test') {
-                $messages[] = 'JSON driver is active (no SQL connection required).';
+                $messages[] = kr_t('database.json_active');
             } elseif ($action === 'init_schema') {
-                $messages[] = 'Schema initialization is skipped for JSON driver.';
+                $messages[] = kr_t('database.json_skip_init');
             } elseif ($action === 'run_select') {
-                $errors[] = 'SQL query is unavailable in JSON driver mode.';
+                $errors[] = kr_t('database.json_no_sql');
             }
         } else {
             $pdo = $resolvePdo();
             if (!$pdo) {
-                $errors[] = 'Database connection failed. Check settings.';
+                $errors[] = kr_t('database.connect_failed');
             } elseif ($action === 'test') {
-                $messages[] = 'Database connection test succeeded.';
+                $messages[] = kr_t('database.connect_ok');
             } elseif ($action === 'init_schema') {
                 try {
                     if ($status['driver'] === 'sqlite') {
@@ -194,16 +193,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             )'
                         );
                     }
-                    $messages[] = 'Schema initialization completed (users table ensured).';
+                    $messages[] = kr_t('database.schema_ok');
                 } catch (Throwable $e) {
-                    $errors[] = 'Schema initialization failed: ' . $e->getMessage();
+                    $errors[] = kr_tf('database.schema_failed', ['error' => $e->getMessage()]);
                 }
             } elseif ($action === 'run_select') {
                 $sql = trim((string) ($_POST['sql'] ?? ''));
                 if ($sql === '') {
-                    $errors[] = 'SQL query is required.';
+                    $errors[] = kr_t('database.sql_required');
                 } elseif (!preg_match('/^\s*select\b/i', $sql)) {
-                    $errors[] = 'Only SELECT queries are allowed.';
+                    $errors[] = kr_t('database.select_only');
                 } else {
                     try {
                         $stmt = $pdo->query($sql);
@@ -218,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'limited' => count($rows) > 200,
                         ];
                     } catch (Throwable $e) {
-                        $errors[] = 'Query failed: ' . $e->getMessage();
+                        $errors[] = kr_tf('database.query_failed', ['error' => $e->getMessage()]);
                     }
                 }
             }
@@ -230,19 +229,22 @@ $status = $resolveStatus();
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= htmlspecialchars(kr_lang(), ENT_QUOTES, 'UTF-8') ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Karakuri Database Settings</title>
+  <title><?= htmlspecialchars(kr_t('database.title'), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="<?= htmlspecialchars($publicBaseUrl . '/assets/setup.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
   <main class="card">
-    <h1>Database Settings</h1>
-    <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">Back to dashboard</a></p>
+    <?php
+      $pageTitle = kr_t('database.title');
+      require __DIR__ . '/_header.php';
+    ?>
+    <p><a href="<?= htmlspecialchars(kr_url('/dashboard'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(kr_t('common.back_to_dashboard'), ENT_QUOTES, 'UTF-8') ?></a></p>
     <?php if (!$hasDatabaseService): ?>
-      <p>Note: <code>database</code> module service is not enabled. Fallback mode is active on this page.</p>
+      <p><?= htmlspecialchars(kr_t('database.fallback_note'), ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
 
     <?php if ($errors): ?>
@@ -262,14 +264,14 @@ header('Content-Type: text/html; charset=UTF-8');
     <?php endif; ?>
 
     <div class="row">
-      <strong>Current driver:</strong> <?= htmlspecialchars((string) $status['driver'], ENT_QUOTES, 'UTF-8') ?>
-      / <strong>Connected:</strong> <?= !empty($status['connected']) ? 'yes' : 'no' ?>
+      <strong><?= htmlspecialchars(kr_t('database.current_driver'), ENT_QUOTES, 'UTF-8') ?>:</strong> <?= htmlspecialchars((string) $status['driver'], ENT_QUOTES, 'UTF-8') ?>
+      / <strong><?= htmlspecialchars(kr_t('database.connected'), ENT_QUOTES, 'UTF-8') ?>:</strong> <?= !empty($status['connected']) ? htmlspecialchars(kr_t('common.yes'), ENT_QUOTES, 'UTF-8') : htmlspecialchars(kr_t('common.no'), ENT_QUOTES, 'UTF-8') ?>
     </div>
 
     <form method="post" action="">
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
       <div>
-        <label for="driver">Driver</label><br>
+        <label for="driver"><?= htmlspecialchars(kr_t('database.driver'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <select id="driver" name="driver">
           <option value="json" <?= $driver === 'json' ? 'selected' : '' ?>>json</option>
           <option value="sqlite" <?= $driver === 'sqlite' ? 'selected' : '' ?>>sqlite</option>
@@ -277,46 +279,46 @@ header('Content-Type: text/html; charset=UTF-8');
         </select>
       </div>
 
-      <h3>SQLite</h3>
+      <h3><?= htmlspecialchars(kr_t('database.sqlite'), ENT_QUOTES, 'UTF-8') ?></h3>
       <div>
-        <label for="sqlite_path">SQLite path</label><br>
+        <label for="sqlite_path"><?= htmlspecialchars(kr_t('database.sqlite_path'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="sqlite_path" name="sqlite_path" type="text" value="<?= htmlspecialchars($sqlitePath, ENT_QUOTES, 'UTF-8') ?>">
       </div>
 
-      <h3>MySQL</h3>
+      <h3><?= htmlspecialchars(kr_t('database.mysql'), ENT_QUOTES, 'UTF-8') ?></h3>
       <div>
-        <label for="mysql_host">Host</label><br>
+        <label for="mysql_host"><?= htmlspecialchars(kr_t('database.host'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_host" name="mysql_host" type="text" value="<?= htmlspecialchars($mysqlHost, ENT_QUOTES, 'UTF-8') ?>">
       </div>
       <div>
-        <label for="mysql_port">Port</label><br>
+        <label for="mysql_port"><?= htmlspecialchars(kr_t('database.port'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_port" name="mysql_port" type="text" value="<?= htmlspecialchars((string) $mysqlPort, ENT_QUOTES, 'UTF-8') ?>">
       </div>
       <div>
-        <label for="mysql_database">Database</label><br>
+        <label for="mysql_database"><?= htmlspecialchars(kr_t('database.database'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_database" name="mysql_database" type="text" value="<?= htmlspecialchars($mysqlDatabase, ENT_QUOTES, 'UTF-8') ?>">
       </div>
       <div>
-        <label for="mysql_username">Username</label><br>
+        <label for="mysql_username"><?= htmlspecialchars(kr_t('database.username'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_username" name="mysql_username" type="text" value="<?= htmlspecialchars($mysqlUsername, ENT_QUOTES, 'UTF-8') ?>">
       </div>
       <div>
-        <label for="mysql_password">Password</label><br>
+        <label for="mysql_password"><?= htmlspecialchars(kr_t('database.password'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_password" name="mysql_password" type="password" value="<?= htmlspecialchars($mysqlPassword, ENT_QUOTES, 'UTF-8') ?>">
       </div>
       <div>
-        <label for="mysql_charset">Charset</label><br>
+        <label for="mysql_charset"><?= htmlspecialchars(kr_t('database.charset'), ENT_QUOTES, 'UTF-8') ?></label><br>
         <input id="mysql_charset" name="mysql_charset" type="text" value="<?= htmlspecialchars($mysqlCharset, ENT_QUOTES, 'UTF-8') ?>">
       </div>
 
-      <button type="submit" name="action" value="save">Save</button>
-      <button type="submit" name="action" value="test">Save & Test</button>
-      <button type="submit" name="action" value="init_schema">Save & Init Schema</button>
+      <button type="submit" name="action" value="save"><?= htmlspecialchars(kr_t('database.save'), ENT_QUOTES, 'UTF-8') ?></button>
+      <button type="submit" name="action" value="test"><?= htmlspecialchars(kr_t('database.save_test'), ENT_QUOTES, 'UTF-8') ?></button>
+      <button type="submit" name="action" value="init_schema"><?= htmlspecialchars(kr_t('database.save_init'), ENT_QUOTES, 'UTF-8') ?></button>
     </form>
 
     <hr>
 
-    <h2>SQL Runner (SELECT only)</h2>
+    <h2><?= htmlspecialchars(kr_t('database.sql_runner'), ENT_QUOTES, 'UTF-8') ?></h2>
     <form method="post" action="">
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(kr_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
       <input type="hidden" name="driver" value="<?= htmlspecialchars($driver, ENT_QUOTES, 'UTF-8') ?>">
@@ -328,11 +330,11 @@ header('Content-Type: text/html; charset=UTF-8');
       <input type="hidden" name="mysql_password" value="<?= htmlspecialchars($mysqlPassword, ENT_QUOTES, 'UTF-8') ?>">
       <input type="hidden" name="mysql_charset" value="<?= htmlspecialchars($mysqlCharset, ENT_QUOTES, 'UTF-8') ?>">
       <textarea name="sql" rows="8" style="width:100%;font-family:Consolas,monospace;">SELECT * FROM users LIMIT 20;</textarea>
-      <button type="submit" name="action" value="run_select">Run SELECT</button>
+      <button type="submit" name="action" value="run_select"><?= htmlspecialchars(kr_t('database.run_select'), ENT_QUOTES, 'UTF-8') ?></button>
     </form>
 
     <?php if ($queryResult !== null): ?>
-      <p>Rows: <?= htmlspecialchars((string) $queryResult['count'], ENT_QUOTES, 'UTF-8') ?><?= !empty($queryResult['limited']) ? ' (limited to 200)' : '' ?></p>
+      <p><?= htmlspecialchars(kr_t('database.rows'), ENT_QUOTES, 'UTF-8') ?>: <?= htmlspecialchars((string) $queryResult['count'], ENT_QUOTES, 'UTF-8') ?><?= !empty($queryResult['limited']) ? ' ' . htmlspecialchars(kr_t('database.rows_limited'), ENT_QUOTES, 'UTF-8') : '' ?></p>
       <?php if ($queryColumns): ?>
         <table border="1" cellpadding="6" cellspacing="0">
           <thead>
@@ -356,7 +358,7 @@ header('Content-Type: text/html; charset=UTF-8');
     <?php endif; ?>
 
     <hr>
-    <h2>Method Guide</h2>
+    <h2><?= htmlspecialchars(kr_t('database.method_guide'), ENT_QUOTES, 'UTF-8') ?></h2>
     <ul>
       <li><code>kr("database.status")</code>: driver/connected/extensions status</li>
       <li><code>kr("database.pdo")</code>: returns <code>PDO|null</code></li>

@@ -20,6 +20,7 @@ if (!is_array($config)) {
 $GLOBALS['kr_config'] = $config;
 
 require __DIR__ . DIRECTORY_SEPARATOR . 'security.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'i18n.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'router.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'storage.php';
 require __DIR__ . DIRECTORY_SEPARATOR . 'contracts' . DIRECTORY_SEPARATOR . 'RequestContext.php';
@@ -32,6 +33,7 @@ require __DIR__ . DIRECTORY_SEPARATOR . 'module_loader.php';
 
 kr_start_session();
 kr_send_security_headers();
+kr_i18n_init($root);
 
 $GLOBALS['kr_request'] = new KrRequestContext();
 $GLOBALS['kr_response'] = new KrResponseContext();

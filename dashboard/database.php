@@ -30,6 +30,98 @@ $queryColumns = [];
 $queryRows = [];
 
 $action = (string) ($_POST['action'] ?? '');
+$hasDatabaseService = kr_has_service('database.status') && kr_has_service('database.pdo');
+
+$buildDbConfig = static function () use (
+    &$driver,
+    &$sqlitePath,
+    &$mysqlHost,
+    &$mysqlPort,
+    &$mysqlDatabase,
+    &$mysqlUsername,
+    &$mysqlPassword,
+    &$mysqlCharset
+): array {
+    return [
+        'driver' => $driver,
+        'sqlite_path' => ($sqlitePath === '') ? 'storage/app.sqlite' : $sqlitePath,
+        'mysql' => [
+            'host' => ($mysqlHost === '') ? '127.0.0.1' : $mysqlHost,
+            'port' => ($mysqlPort > 0) ? $mysqlPort : 3306,
+            'database' => $mysqlDatabase,
+            'username' => $mysqlUsername,
+            'password' => $mysqlPassword,
+            'charset' => $mysqlCharset,
+        ],
+    ];
+};
+
+$localPdo = static function (array $dbConfig) use ($root): ?PDO {
+    if ($dbConfig['driver'] === 'json' || !extension_loaded('pdo')) {
+        return null;
+    }
+    try {
+        if ($dbConfig['driver'] === 'sqlite') {
+            if (!extension_loaded('pdo_sqlite')) {
+                return null;
+            }
+            $path = (string) ($dbConfig['sqlite_path'] ?? 'storage/app.sqlite');
+            if (!preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) && !str_starts_with($path, '/')) {
+                $path = $root . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+            }
+            $pdo = new PDO('sqlite:' . $path);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $pdo;
+        }
+        if (!extension_loaded('pdo_mysql')) {
+            return null;
+        }
+        $mysqlCfg = is_array($dbConfig['mysql'] ?? null) ? $dbConfig['mysql'] : [];
+        $dbName = (string) ($mysqlCfg['database'] ?? '');
+        $user = (string) ($mysqlCfg['username'] ?? '');
+        if ($dbName === '' || $user === '') {
+            return null;
+        }
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+            (string) ($mysqlCfg['host'] ?? '127.0.0.1'),
+            (int) ($mysqlCfg['port'] ?? 3306),
+            $dbName,
+            (string) ($mysqlCfg['charset'] ?? 'utf8mb4')
+        );
+        $pdo = new PDO($dsn, $user, (string) ($mysqlCfg['password'] ?? ''));
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    } catch (Throwable) {
+        return null;
+    }
+};
+
+$resolveStatus = static function () use (&$hasDatabaseService, &$buildDbConfig, &$localPdo): array {
+    if ($hasDatabaseService) {
+        /** @var array $status */
+        $status = kr('database.status');
+        return $status;
+    }
+    $cfg = $buildDbConfig();
+    $pdo = $localPdo($cfg);
+    return [
+        'driver' => $cfg['driver'],
+        'connected' => $pdo instanceof PDO,
+        'pdo_enabled' => extension_loaded('pdo'),
+        'pdo_sqlite_enabled' => extension_loaded('pdo_sqlite'),
+        'pdo_mysql_enabled' => extension_loaded('pdo_mysql'),
+    ];
+};
+
+$resolvePdo = static function () use (&$hasDatabaseService, &$buildDbConfig, &$localPdo): ?PDO {
+    if ($hasDatabaseService) {
+        /** @var ?PDO $pdo */
+        $pdo = kr('database.pdo');
+        return $pdo;
+    }
+    return $localPdo($buildDbConfig());
+};
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kr_csrf_validate((string) ($_POST['csrf_token'] ?? ''))) {
@@ -52,18 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $config['database'] = [
-            'driver' => $driver,
-            'sqlite_path' => ($sqlitePath === '') ? 'storage/app.sqlite' : $sqlitePath,
-            'mysql' => [
-                'host' => ($mysqlHost === '') ? '127.0.0.1' : $mysqlHost,
-                'port' => ($mysqlPort > 0) ? $mysqlPort : 3306,
-                'database' => $mysqlDatabase,
-                'username' => $mysqlUsername,
-                'password' => $mysqlPassword,
-                'charset' => $mysqlCharset,
-            ],
-        ];
+        $config['database'] = $buildDbConfig();
         $GLOBALS['kr_config'] = $config;
 
         if ($action === 'save' || $action === 'test' || $action === 'init_schema') {
@@ -76,8 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors && ($action === 'test' || $action === 'init_schema' || $action === 'run_select')) {
-        /** @var array $status */
-        $status = kr('database.status');
+        $status = $resolveStatus();
 
         if ($status['driver'] === 'json') {
             if ($action === 'test') {
@@ -88,8 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'SQL query is unavailable in JSON driver mode.';
             }
         } else {
-            /** @var ?PDO $pdo */
-            $pdo = kr('database.pdo');
+            $pdo = $resolvePdo();
             if (!$pdo) {
                 $errors[] = 'Database connection failed. Check settings.';
             } elseif ($action === 'test') {
@@ -147,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$status = kr('database.status');
+$status = $resolveStatus();
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!doctype html>
@@ -162,6 +241,9 @@ header('Content-Type: text/html; charset=UTF-8');
   <main class="card">
     <h1>Database Settings</h1>
     <p><a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">Back to dashboard</a></p>
+    <?php if (!$hasDatabaseService): ?>
+      <p>Note: <code>database</code> module service is not enabled. Fallback mode is active on this page.</p>
+    <?php endif; ?>
 
     <?php if ($errors): ?>
       <ul class="notice">

@@ -25,6 +25,15 @@ function kr(string $name, mixed ...$args): mixed
 }
 
 /**
+ * Check whether a service entry exists and is callable.
+ */
+function kr_has_service(string $name): bool
+{
+    $services = $GLOBALS['kr_services'] ?? [];
+    return isset($services[$name]) && is_callable($services[$name]);
+}
+
+/**
  * Get config value from global config loaded by core loader.
  */
 function kr_config(?string $key = null, mixed $default = null): mixed
